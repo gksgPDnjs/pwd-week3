@@ -140,9 +140,19 @@ function SubmitRestaurant() {
         toast.success('맛집이 성공적으로 제보되었습니다! 🎉');
         reset();
         setTimeout(() => setSubmitted(false), 5000);
-      }
+        } else {    
+        const text = await response.text().catch(() => "");
+        toast.error(`제출 실패: ${response.status} ${response.statusText}`);
+        console.error("Netlify form submit failed", {
+        status: response.status,
+        statusText: response.statusText,
+        body: text,
+     });
+    }
     } catch (error) {
-      toast.error('제출 중 오류가 발생했습니다.');
+      // error를 실제로 사용하여 ESLint 경고 제거
+    console.error("Submit error:", error);
+    toast.error(`제출 중 오류가 발생했습니다: ${error?.message ?? "알 수 없음"}`);
     }
   };
 
