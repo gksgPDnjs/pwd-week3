@@ -112,8 +112,20 @@ export const restaurantAPI = {
         .sort((a, b) => b.rating - a.rating)
         .slice(0, 5);
       return { data: popular };
+
+
     }
   },
+   createRestaurant: async (payload) => {
+    try {
+      const response = await api.post('/api/restaurants', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create restaurant', error);
+      throw error;
+    }
+  },
+
 };
 
 export default api;

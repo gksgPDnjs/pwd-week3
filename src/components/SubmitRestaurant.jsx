@@ -165,11 +165,17 @@ function SubmitRestaurant() {
     <FormContainer>
       <FormTitle>🍽️ 새로운 맛집 제보하기</FormTitle>
       
-        <input type="hidden" name="form-name" value="restaurant-submit" />
-        <form      name="restaurant-submit"
+      <form
+        name="restaurant-submit"
         method="POST"
         data-netlify="true"
-        onSubmit={handleSubmit(onSubmit)}>
+        data-netlify-honeypot="bot-field"
+        action="/?no-cache=1"
+        onSubmit={handleSubmit(onSubmit)}
+      >
+      {/* Netlify 탐지/백업용 hidden 필드 - 반드시 form 내부 */}
+      <input type="hidden" name="form-name" value="restaurant-submit" />
+      <input type="hidden" name="bot-field" />
         <FormGroup>
           <Label htmlFor="restaurantName">맛집 이름 *</Label>
           <Input
