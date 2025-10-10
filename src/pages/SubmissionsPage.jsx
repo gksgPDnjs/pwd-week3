@@ -1,9 +1,11 @@
 //src/pages/SubmissionsPage.jsx
 import React, { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import styled from '@emotion/styled';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { submissionAPI, restaurantAPI } from '../services/api';
 import { toast } from 'react-toastify';
+
 
 const Container = styled.div`
   padding: 2rem 0;
@@ -59,6 +61,17 @@ const Danger = styled(Button)`
 function SubmissionsPage() {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('pending');
+
+  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm();
+  const createSubmissionMutation = useMutation({
+    mutationFn: submissionAPI.createSubmission,
+    onSuccess: () => {
+      toast.success('제보 완료 (pending)');
+      reset();
+      queryClient.invalidateQueries({ queryKey: ['submissions'] });
+    },
+  });
+
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['submissions', status],
@@ -116,6 +129,41 @@ function SubmissionsPage() {
   return (
     <Container>
       <Title>제보 관리</Title>
+      <form
+        onSubmit={handleSubmit((form) => {
+          const payload = {
+            restaurantName: form.restaurantName?.trim(),
+            category: form.category,
+            location: form.location?.trim(),
+            priceRange: form.priceRange?.trim() || undefined,
+            recommendedMenu: (form.recommendedMenu || '')
+             .split(/[\n,]/).map(s => s.trim()).filter(Boolean),
+            review: form.review?.trim() || undefined,
+            submitterName: form.submitterName?.trim() || undefined,
+            submitterEmail: form.submitterEmail?.trim() || undefined,
+          };
+          createSubmissionMutation.mutate(payload);
+        })}
+        style={{marginBottom:'1rem', padding:'1rem', border:'1px solid #eee', borderRadius:8}}
+      >
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.75rem'}}>
+          <input placeholder="식당명 *" {...register('restaurantName', {required:true})}/>
+          <input placeholder="카테고리 * (한식/중식/...)" {...register('category', {required:true})}/>
+          <input placeholder="위치 *" {...register('location', {required:true})}/>
+          <input placeholder="가격대" {...register('priceRange')}/>
+          <input placeholder="추천메뉴(쉼표/줄바꿈 구분)" {...register('recommendedMenu')}/>
+          <input placeholder="제보자 이름" {...register('submitterName')}/>
+          <input placeholder="제보자 이메일" {...register('submitterEmail')}/>
+        </div>
+        <textarea
+          placeholder="한줄평(선택)"
+          {...register('review')}
+          style={{width:'100%',marginTop:'0.75rem',minHeight:80}}
+        />
+       <div style={{marginTop:'0.5rem'}}>
+          <button type="submit" disabled={isSubmitting}>제보하기</button>
+        </div>
+      </form>
       <Controls>
         {statuses.map(s => (
           <FilterButton key={s.key} $active={status === s.key} onClick={() => setStatus(s.key)}>
